@@ -1,0 +1,18 @@
+binance:
+  user-info-url: 'https://www.binance.com/bapi/accounts/v1/private/account/user/base-detail'
+  site-key: '6LeUPckbAAAAAIX0YxfqgiXvD3EOXSeuq0OpO8u_'
+  nft:
+    cookie: 'test'
+    csrf-token: ''
+    bnc-uuid: ''
+    device-info: ''
+    nft-box-list-url: 'https://www.binance.com/bapi/nft/v1/public/nft/mystery-box/list?page=1&size=15'
+    nft-box-info-url: 'https://www.binance.com/bapi/nft/v1/friendly/nft/mystery-box/detail?productId={productId}'
+    nft-box-buy-url: 'https://www.binance.com/bapi/nft/v1/private/nft/mystery-box/purchase'
+    nft-box-for-captcha-url: 'https://www.binance.com/en/nft/goods/detail?productId='
+proxy:
+  enabled: true
+  host: 127.0.0.1
+  port: 7890
+two-captcha:
+  api-key: '8d9e6f96f71c18f3400345b3b21273d9'
