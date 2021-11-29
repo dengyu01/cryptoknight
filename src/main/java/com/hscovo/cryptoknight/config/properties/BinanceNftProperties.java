@@ -1,7 +1,6 @@
 package com.hscovo.cryptoknight.config.properties;
 
 import lombok.Data;
-import org.springframework.beans.factory.annotation.Value;
 
 @Data
 public class BinanceNftProperties {

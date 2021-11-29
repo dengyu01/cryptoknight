@@ -1,6 +1,6 @@
 package com.hscovo.cryptoknight.controller;
 
-import com.hscovo.cryptoknight.model.param.BoxParam;
+import com.hscovo.cryptoknight.model.dto.BoxDTO;
 import com.hscovo.cryptoknight.model.dto.BinanceBoxDTO;
 import com.hscovo.cryptoknight.service.BinanceService;
 import org.springframework.web.bind.annotation.*;
@@ -28,17 +28,17 @@ public class BinanceController {
     }
 
     @GetMapping(value = "nft-box/detail")
-    public BinanceBoxDTO getBoxDetail(@RequestBody @Valid BoxParam boxParam) {
-        return binanceService.getBoxDetail(boxParam);
+    public BinanceBoxDTO getBoxDetail(@RequestParam String productId) {
+        return binanceService.getBoxDetail(productId);
     }
 
     @PostMapping(value = "nft-box/purchase")
-    public boolean buyBox(@RequestBody @Valid BoxParam boxParam) {
-        return binanceService.buyBox(boxParam);
+    public boolean buyBox(@RequestBody @Valid BoxDTO boxDTO) {
+        return binanceService.buyBox(boxDTO);
     }
 
     @PostMapping("nft-box/purchase_jobs")
-    public boolean startBuyBoxJobs(@RequestBody @Valid BoxParam boxParam) throws InterruptedException {
-        return binanceService.multiThreadsBuyBox(boxParam);
+    public boolean startBuyBoxJobs(@RequestBody @Valid BoxDTO boxDTO) throws InterruptedException {
+        return binanceService.multiThreadsBuyBox(boxDTO);
     }
 }

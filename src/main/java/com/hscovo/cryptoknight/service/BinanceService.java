@@ -4,7 +4,7 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.hscovo.cryptoknight.config.properties.BinanceNftProperties;
 import com.hscovo.cryptoknight.config.properties.BinanceProperties;
-import com.hscovo.cryptoknight.model.param.BoxParam;
+import com.hscovo.cryptoknight.model.dto.BoxDTO;
 import com.hscovo.cryptoknight.model.dto.BinanceBoxDTO;
 import com.hscovo.cryptoknight.util.Request;
 import com.hscovo.cryptoknight.util.TimeUtil;
@@ -64,10 +64,10 @@ public class BinanceService {
         return boxes;
     }
 
-    public BinanceBoxDTO getBoxDetail(BoxParam boxParam) {
+    public BinanceBoxDTO getBoxDetail(String productId) {
         checkStatusHandler();
         Map<String, String> params = new HashMap<>();
-        params.put("productId", boxParam.getProductId());
+        params.put("productId", productId);
         JSONObject response
                 = Request.get(binanceProperties.getNft().getNftBoxInfoUrl(), headersCache, JSONObject.class, params);
         BinanceBoxDTO box = response.getObject("data", BinanceBoxDTO.class);
@@ -77,20 +77,20 @@ public class BinanceService {
         return box;
     }
 
-    public boolean buyBox(BoxParam boxParam) {
-        String url = binanceProperties.getNft().getNftBoxForCaptchaUrl() + boxParam.getProductId();
+    public boolean buyBox(BoxDTO boxDTO) {
+        String url = binanceProperties.getNft().getNftBoxForCaptchaUrl() + boxDTO.getProductId();
         String code = twoCaptchaService.solveBinanceCaptcha(url, binanceProperties.getSiteKey());
-        return buyBox(boxParam, code);
+        return buyBox(boxDTO, code);
     }
 
-    public boolean buyBox(BoxParam boxParam, String code) {
+    public boolean buyBox(BoxDTO boxDTO, String code) {
         if (boxCache.isEmpty()) {
             getNftBoxList();
         }
-        BinanceBoxDTO box = boxCache.get(boxParam.getProductId());
+        BinanceBoxDTO box = boxCache.get(boxDTO.getProductId());
         JSONObject body = new JSONObject();
         body.put("productId", box.getProductId());
-        body.put("number", boxParam.getAmount());
+        body.put("number", boxDTO.getAmount());
 
         HashMap<String, String> headers = new HashMap<>(headersCache);
         headers.put("x-nft-checkbot-token", code);
@@ -119,14 +119,14 @@ public class BinanceService {
         return codeList;
     }
 
-    private synchronized boolean startBuyBoxJob(BoxParam boxParam, CopyOnWriteArrayList<String> codeList)
+    private synchronized boolean startBuyBoxJob(BoxDTO boxDTO, CopyOnWriteArrayList<String> codeList)
             throws InterruptedException {
         AtomicInteger response = new AtomicInteger();
         ArrayList<Thread> buyBoxJobs = new ArrayList<>();
         for (int i = 0; i < codeList.size(); i++) {
             String code = codeList.get(i);
             Thread t = new Thread(() -> {
-                boolean success = buyBox(boxParam, code);
+                boolean success = buyBox(boxDTO, code);
                 if (success) {
                     response.incrementAndGet();
                     System.out.println("buy box success.");
@@ -146,17 +146,18 @@ public class BinanceService {
         return false;
     }
 
-    public boolean multiThreadsBuyBox(BoxParam boxParam) throws InterruptedException {
-        String url = binanceProperties.getNft().getNftBoxForCaptchaUrl() + boxParam.getProductId();
+    public boolean multiThreadsBuyBox(BoxDTO boxDTO) throws InterruptedException {
+        String url = binanceProperties.getNft().getNftBoxForCaptchaUrl() + boxDTO.getProductId();
         String siteKey = binanceProperties.getSiteKey();
 
-        BinanceBoxDTO boxDetail = getBoxDetail(boxParam);
+        BinanceBoxDTO boxDetail = getBoxDetail(boxDTO.getProductId());
+//        Long startTime = System.currentTimeMillis() + 110 * 1000;
         Long startTime = boxDetail.getStartTime();
 
         TimeUtil.wait(startTime, "waiting box sale...", 105, 1000);
 
         System.out.println("start to get captcha code.");
-        CopyOnWriteArrayList<String> codeList = startCaptchaJobs(boxParam.getThreadNum(), url, siteKey);
+        CopyOnWriteArrayList<String> codeList = startCaptchaJobs(boxDTO.getThreadNum(), url, siteKey);
         if (codeList.isEmpty()) {
             System.out.println("failed to get captcha!");
             return false;
@@ -165,7 +166,7 @@ public class BinanceService {
         TimeUtil.wait(startTime, "waiting box sale...", 1, 100);
 
         System.out.println("start to run buyBox threads.");
-        boolean response = startBuyBoxJob(boxParam, codeList);
+        boolean response = startBuyBoxJob(boxDTO, codeList);
         if (!response) {
             System.out.println("buy box:" + boxDetail.getName() + " --> final result: failed.");
             return false;
