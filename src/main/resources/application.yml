@@ -15,4 +15,4 @@ proxy:
   host: 127.0.0.1
   port: 7890
 two-captcha:
-  api-key: '8d9e6f96f71c18f3400345b3b21273d9'
+  api-key: ''
